@@ -1,10 +1,13 @@
 import _ from 'lodash'
+import dayjs from 'dayjs'
 
 export const gridSize = new Array(20).fill('')
 
 const LIMIT = 19 // changes based on grid size
 
 export const initialSnake = { '10:15': 'snake snake-head' }
+
+export const initialFood = { '5:10': 'food' }
 
 export const validPath: { [key: string]: string[] } = {
   ArrowLeft: ['ArrowLeft', 'ArrowUp', 'ArrowDown'],
@@ -63,7 +66,13 @@ export const createSnakeBlock = (
     }
   }, {})
 
-export const validateMove = (key: string, currentPath: string) => {
+export const validateMove = (
+  key: string,
+  currentPath: string,
+  time: number
+) => {
+  const diff = dayjs().valueOf() - time
+  if (diff < 150) return false
   return validPath[currentPath].includes(key)
 }
 

@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import _ from 'lodash'
+import dayjs from 'dayjs'
 import {
   gridSize,
   initialSnake,
+  initialFood,
   validateMove,
   getDirection,
   createSnakeBlock,
@@ -16,28 +18,32 @@ import snakeHead from './assets/snake.png'
 
 type keyPress = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'
 
+const localScore = Number(localStorage.getItem('snakeHighScore') || 0)
+
 const App: React.FC = () => {
-  const [score, setScore] = useState<number>(0)
-  const [highScore, setHighScore] = useState<number>(
-    Number(localStorage.getItem('snakeHighScore') || 0)
-  )
   const [snake, setSnake] = useState<{ [key: string]: string }>(initialSnake)
-  const [food, setFood] = useState<{ [key: string]: string }>({
-    '5:10': 'food'
-  })
+  const [food, setFood] = useState<{ [key: string]: string }>(initialFood)
   const [interval, setInterval] = useState<number | null>(null)
   const [currentPath, setCurrentPath] = useState<keyPress>('ArrowLeft')
+  const [score, setScore] = useState<number>(0)
+  const [highScore, setHighScore] = useState<number>(localScore)
+  const [time, setTime] = useState<number>(dayjs().valueOf())
 
   useInterval(() => moveSnake(), interval)
 
   const startGame = () => setInterval(280)
 
   const handleKeyPress = (e: any) => {
-    if (!validateMove(e.key, currentPath)) return false
+    if (!validateMove(e.key, currentPath, time)) return false
     setCurrentPath(e.key)
+    setTime(dayjs().valueOf())
   }
 
-  useEventListener('keydown', _.debounce(handleKeyPress, 150))
+  useEffect(() => {
+    handleFood(_.keys(snake), _.keys(food))
+  }, [snake, food])
+
+  useEventListener('keydown', handleKeyPress)
 
   const handleFood = (snakeKeys: string[], foodKeys: string[]) => {
     if (ateFood(snakeKeys, foodKeys)) {
@@ -70,18 +76,18 @@ const App: React.FC = () => {
     const updatedSnake = createSnakeBlock(snakeKeys, foodKeys, row, column)
     const updatedSnakeKeys = Object.keys(updatedSnake)
     setSnake(updatedSnake)
-    handleFood(updatedSnakeKeys, foodKeys)
     if (detectCollision(snakeKeys, updatedSnakeKeys)) gameOver()
   }
 
   return (
     <div className="app-snake">
       <h1 className="title">SnakeZ</h1>
-      {interval === null && (
-        <button className="start" onClick={startGame}>
-          Start Game
-        </button>
-      )}
+      <button
+        disabled={interval !== null}
+        className="start"
+        onClick={startGame}>
+        Start Game
+      </button>
       <p>High Score - {highScore}</p>
       <div className="grid-container">
         {gridSize.map((_, rowKey) => (
