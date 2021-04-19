@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import _ from 'lodash'
 import {
   gridSize,
   initialSnake,
@@ -24,19 +25,19 @@ const App: React.FC = () => {
   const [food, setFood] = useState<{ [key: string]: string }>({
     '5:10': 'food'
   })
-  const [currentPath, setCurrentPath] = useState<keyPress>('ArrowLeft')
   const [interval, setInterval] = useState<number | null>(null)
+  const [currentPath, setCurrentPath] = useState<keyPress>('ArrowLeft')
 
   useInterval(() => moveSnake(), interval)
 
-  const startGame = () => setInterval(300)
+  const startGame = () => setInterval(280)
 
   const handleKeyPress = (e: any) => {
     if (!validateMove(e.key, currentPath)) return false
     setCurrentPath(e.key)
   }
 
-  useEventListener('keydown', handleKeyPress)
+  useEventListener('keydown', _.debounce(handleKeyPress, 150))
 
   const handleFood = (snakeKeys: string[], foodKeys: string[]) => {
     if (ateFood(snakeKeys, foodKeys)) {
