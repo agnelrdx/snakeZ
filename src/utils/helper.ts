@@ -1,13 +1,15 @@
-import _ from 'lodash'
 import dayjs from 'dayjs'
 
 export const gridSize = new Array(20).fill('')
 
 const LIMIT = 19 // changes based on grid size
 
-export const initialSnake = { '10:15': 'snake snake-head' }
+export const initialSnake = ['10:15']
 
-export const initialFood = { '5:10': 'food' }
+export const initialFood = ['5:10']
+
+export const printSnake = (snake: string[], cord: string) =>
+  snake[0] === cord ? 'snake snake-head' : 'snake'
 
 export const validPath: { [key: string]: string[] } = {
   ArrowLeft: ['ArrowLeft', 'ArrowUp', 'ArrowDown'],
@@ -36,35 +38,18 @@ export const createSnakeBlock = (
   food: string[],
   row: number,
   column: number
-) =>
-  snake.reduce((acc, val, key) => {
-    if (key === 0) {
-      const head = `${Number(_.head(val.split(':'))) + row}:${
-        Number(_.last(val.split(':'))) + column
-      }`
-      let withFood = {}
-      let currentHead = true
-      if (food.includes(head)) {
-        const updatedRow = row * 2
-        const updatedCol = column * 2
-        currentHead = false
-        withFood = {
-          [`${Number(_.head(val.split(':'))) + updatedRow}:${
-            Number(_.last(val.split(':'))) + updatedCol
-          }`]: 'snake snake-head'
-        }
-      }
-      return {
-        ...withFood,
-        [`${head}`]: currentHead ? 'snake snake-head' : 'snake',
-        ...acc
-      }
-    }
-    return {
-      ...acc,
-      [`${snake[key - 1]}`]: 'snake'
-    }
-  }, {})
+) => {
+  const headArr = snake[0].split(':')
+  const headModified = `${Number(headArr[0]) + row}:${
+    Number(headArr[1]) + column
+  }`
+  if (food.includes(headModified)) {
+    const bla = [headModified, ...snake]
+    return bla
+  }
+
+  return [headModified, ...snake].slice(0, -1)
+}
 
 export const validateMove = (
   key: string,
@@ -72,17 +57,17 @@ export const validateMove = (
   time: number
 ) => {
   const diff = dayjs().valueOf() - time
-  if (diff < 150) return false
+  if (diff < 125) return false
   return validPath[currentPath].includes(key)
 }
 
-export const detectCollision = (snake: string[], updatedSnake: string[]) => {
+export const detectCollision = (snake: string[]) => {
+  const modifiedSnake = JSON.stringify(snake)
+  const regMatch = new RegExp(`${LIMIT + 1}`)
   return (
-    updatedSnake.some(
-      (val: string) =>
-        ['-1', `${LIMIT + 1}`].includes(val.split(':')[0]) ||
-        ['-1', `${LIMIT + 1}`].includes(val.split(':')[1])
-    ) || snake.includes(updatedSnake[0])
+    /-1/.test(modifiedSnake) ||
+    regMatch.test(modifiedSnake) ||
+    new Set(snake).size !== snake.length
   )
 }
 
@@ -91,9 +76,9 @@ export const ateFood = (snake: string[], food: string[]) => {
 }
 
 export const createFoodBlock = (snake: string[]): any => {
-  const path = `${Math.floor(Math.random() * LIMIT + 1)}:${Math.floor(
+  const foodCord = `${Math.floor(Math.random() * LIMIT + 1)}:${Math.floor(
     Math.random() * LIMIT + 1
   )}`
-  if (snake.includes(path)) return createFoodBlock(snake)
-  return { [path]: 'food' }
+  if (snake.includes(foodCord)) return createFoodBlock(snake)
+  return [foodCord]
 }

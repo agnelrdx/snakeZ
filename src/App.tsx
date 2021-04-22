@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import React, { useState, useEffect } from 'react'
-import _ from 'lodash'
 import dayjs from 'dayjs'
 import {
   gridSize,
@@ -10,7 +11,8 @@ import {
   createSnakeBlock,
   detectCollision,
   ateFood,
-  createFoodBlock
+  createFoodBlock,
+  printSnake
 } from './utils/helper'
 import { useInterval, useEventListener } from './utils/customHooks'
 import worm from './assets/worm.png'
@@ -21,8 +23,8 @@ type keyPress = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'
 const localScore = Number(localStorage.getItem('snakeHighScore') || 0)
 
 const App: React.FC = () => {
-  const [snake, setSnake] = useState<{ [key: string]: string }>(initialSnake)
-  const [food, setFood] = useState<{ [key: string]: string }>(initialFood)
+  const [snake, setSnake] = useState<string[]>(initialSnake)
+  const [food, setFood] = useState<string[]>(initialFood)
   const [interval, setInterval] = useState<number | null>(null)
   const [currentPath, setCurrentPath] = useState<keyPress>('ArrowLeft')
   const [score, setScore] = useState<number>(0)
@@ -40,14 +42,18 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
-    handleFood(_.keys(snake), _.keys(food))
-  }, [snake, food])
+    handleFood()
+  }, [snake])
+
+  useEffect(() => {
+    if (detectCollision(snake)) gameOver()
+  }, [snake])
 
   useEventListener('keydown', handleKeyPress)
 
-  const handleFood = (snakeKeys: string[], foodKeys: string[]) => {
-    if (ateFood(snakeKeys, foodKeys)) {
-      const newFood = createFoodBlock(snakeKeys)
+  const handleFood = () => {
+    if (ateFood(snake, food)) {
+      const newFood = createFoodBlock(snake)
       setFood(newFood)
       setScore(preScore => preScore + 1)
       setInterval(preInterval =>
@@ -71,12 +77,8 @@ const App: React.FC = () => {
 
   const moveSnake = () => {
     const { row, column } = getDirection(currentPath)
-    const snakeKeys = Object.keys(snake)
-    const foodKeys = Object.keys(food)
-    const updatedSnake = createSnakeBlock(snakeKeys, foodKeys, row, column)
-    const updatedSnakeKeys = Object.keys(updatedSnake)
+    const updatedSnake = createSnakeBlock(snake, food, row, column)
     setSnake(updatedSnake)
-    if (detectCollision(snakeKeys, updatedSnakeKeys)) gameOver()
   }
 
   return (
@@ -96,9 +98,11 @@ const App: React.FC = () => {
               <span
                 data-path={`${rowKey}:${gridKey}`}
                 className={`grid ${
-                  snake[`${rowKey}:${gridKey}`] ||
-                  food[`${rowKey}:${gridKey}`] ||
-                  ''
+                  snake.includes(`${rowKey}:${gridKey}`)
+                    ? printSnake(snake, `${rowKey}:${gridKey}`)
+                    : food.includes(`${rowKey}:${gridKey}`)
+                    ? 'food'
+                    : ''
                 }`.trim()}
                 key={gridKey}>
                 <img className="worm-img" src={worm} alt="worm" />
