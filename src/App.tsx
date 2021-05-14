@@ -44,7 +44,7 @@ const App: React.FC = () => {
   }
   
   useEffect(() => {
-    audio.current.value.play()
+    audio.current.play()
   }, [])
 
   useEffect(() => {
