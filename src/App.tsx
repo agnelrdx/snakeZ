@@ -20,7 +20,7 @@ import snakeHead from './assets/snake.png'
 
 type keyPress = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'
 
-const localScore = Number(localStorage.getItem('snakeHighScore') || 0)
+const localScore = () => Number(localStorage.getItem('snakeHighScore') || 0)
 
 const App: React.FC = () => {
   const [snake, setSnake] = useState<string[]>(initialSnake)
@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const [interval, setInterval] = useState<number | null>(null)
   const [currentPath, setCurrentPath] = useState<keyPress>('ArrowLeft')
   const [score, setScore] = useState<number>(0)
-  const [highScore, setHighScore] = useState<number>(localScore)
+  const [highScore, setHighScore] = useState<number>(localScore())
   const [time, setTime] = useState<number>(dayjs().valueOf())
 
   useInterval(() => moveSnake(), interval)
@@ -68,7 +68,6 @@ const App: React.FC = () => {
     setInterval(null)
     alert('!!!!!!!!!GAME OVER!!!!!!!!!')
     setSnake(initialSnake)
-    const highScore = Number(localStorage.getItem('snakeHighScore') || 0)
     if (score > highScore) {
       localStorage.setItem('snakeHighScore', `${score}`)
       setHighScore(score)
@@ -90,7 +89,7 @@ const App: React.FC = () => {
         onClick={startGame}>
         Start Game
       </button>
-      <p>High Score - {highScore}</p>
+      <p>High Score - {score > highScore ? score : highScore}</p>
       <div className="grid-container">
         {gridSize.map((_, rowKey) => (
           <div className="row" key={rowKey}>
