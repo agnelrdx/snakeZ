@@ -118,7 +118,7 @@ const App: React.FC = () => {
         ))}
       </div>
       <audio ref={audio}>
-        <source src={music} type="audio/mpeg">
+        <source src={music} type="audio/mpeg" />
       </audio>
     </div>
   )
