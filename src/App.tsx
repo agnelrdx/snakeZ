@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import dayjs from 'dayjs'
 import {
   gridSize,
@@ -17,12 +17,14 @@ import {
 import { useInterval, useEventListener } from './utils/customHooks'
 import worm from './assets/worm.png'
 import snakeHead from './assets/snake.png'
+import music from './assets/music.mp3'
 
 type keyPress = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'
 
 const localScore = () => Number(localStorage.getItem('snakeHighScore') || 0)
 
 const App: React.FC = () => {
+  const audio = useRef<HTMLElement | null>(null)
   const [snake, setSnake] = useState<string[]>(initialSnake)
   const [food, setFood] = useState<string[]>(initialFood)
   const [interval, setInterval] = useState<number | null>(null)
@@ -40,6 +42,10 @@ const App: React.FC = () => {
     setCurrentPath(e.key)
     setTime(dayjs().valueOf())
   }
+  
+  useEffect(() => {
+    audio.current.value.play()
+  }, [])
 
   useEffect(() => {
     handleFood()
@@ -111,6 +117,9 @@ const App: React.FC = () => {
           </div>
         ))}
       </div>
+      <audio ref={audio}>
+        <source src={music} type="audio/mpeg">
+      </audio>
     </div>
   )
 }
